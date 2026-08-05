@@ -19,13 +19,11 @@
 			{open ? 'Hide In' : 'Show In'}
 		</button>
 		{#if open}
-			<div transition:fade={{ duration: 160 }}>
-				<Portal.In>
-					<span class="chip" transition:fly={{ y: 8, duration: 200 }}>
-						{message}
-					</span>
-				</Portal.In>
-			</div>
+			<Portal.In>
+				<span class="chip absolute" transition:fly={{ y: 8, duration: 200 }}>
+					{message}
+				</span>
+			</Portal.In>
 		{/if}
 		<p class="hint">Content mounted here travels to the outlet below.</p>
 	</section>
