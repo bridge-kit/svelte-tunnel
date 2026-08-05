@@ -1,5 +1,5 @@
 {
-	"name": "@bridge-kit/svelte-tunnel",
+	"name": "@bridge-stack/svelte-tunnel",
 	"version": "0.0.1",
 	"engines": {
 		"node": ">=v24.18.0"
