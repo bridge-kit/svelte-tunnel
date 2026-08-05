@@ -1,65 +1,196 @@
-# Svelte library
+# svelte-tunnel
 
-Everything you need to build a Svelte library, powered by [`sv`](https://npmjs.com/package/sv).
+Portal content across your Svelte component tree with paired `In` / `Out` tunnels.
 
-Read more about creating a library [in the docs](https://svelte.dev/docs/kit/packaging).
+Render markup from deep in the tree into a distant outlet — headers, toasts, modals, drawers, or any shared chrome — without prop drilling or global DOM hacks.
 
-## Creating a project
+**Docs & demos:** [bridge-kit.github.io/svelte-tunnel](https://bridge-kit.github.io/svelte-tunnel/)
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Why a tunnel?
 
-```sh
-# create a new project in the current directory
-npx sv create
+Keep content next to the logic that owns it, while rendering into shared surfaces:
 
-# create a new project in my-app
-npx sv create my-app
-```
+- **Paired portals** — each `tunnel()` call returns a matched `In` / `Out` pair scoped to that instance
+- **Single or multiple** — last-wins for menus and tabs, or stack every `In` for toasts and trays
+- **Svelte 5 native** — built with runes, snippets, and mount / unmount; no extra runtime
 
-To recreate this project with the same configuration:
+## Install
 
 ```sh
-# recreate this project
-pnpm dlx sv@0.17.0 create --template library --types ts --add prettier eslint vitest="usages:unit,component" --install pnpm svelte-tunnel
+pnpm add @bridge-stack/svelte-tunnel
+# or: npm i @bridge-stack/svelte-tunnel
+# or: bun add @bridge-stack/svelte-tunnel
 ```
 
-## Developing
+Peer dependency: **Svelte 5**.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Usage
+
+```svelte
+<script>
+	import { tunnel } from '@bridge-stack/svelte-tunnel';
+
+	const Portal = tunnel();
+</script>
+
+<header>
+	<Portal.Out />
+</header>
+
+<main>
+	<Portal.In>
+		<button>Rendered in the header</button>
+	</Portal.In>
+</main>
+```
+
+Mount `In` next to the logic that owns the content. Place `Out` where that content should appear. When `In` mounts or unmounts, the outlet updates.
+
+## Modes
+
+| Mode               | Behavior                                          |
+| ------------------ | ------------------------------------------------- |
+| `single` (default) | Only the last mounted `In` is shown at each `Out` |
+| `multiple`         | Every mounted `In` is shown at every `Out`        |
+
+```ts
+const Portal = tunnel({ mode: 'multiple' });
+```
+
+Use `single` for exclusive UI (active tab label, one open menu). Use `multiple` when several sources should appear together (toast stacks, toolbars).
+
+## Examples
+
+Interactive demos live on the [examples page](https://bridge-kit.github.io/svelte-tunnel/examples/). Patterns below mirror those demos.
+
+### Modal dialog
+
+Trigger from nested UI; render the overlay at a host outlet.
+
+```svelte
+<script>
+	import { tunnel } from '@bridge-stack/svelte-tunnel';
+
+	const Modal = tunnel();
+	let open = $state(false);
+</script>
+
+<!-- host / overlay root -->
+<Modal.Out />
+
+<!-- deep in the tree -->
+{#if open}
+	<Modal.In>
+		<div role="dialog" aria-modal="true">…</div>
+	</Modal.In>
+{/if}
+```
+
+### Toast tray
+
+Push notifications from nested actions into shared chrome with `mode: 'multiple'`.
+
+```svelte
+<script>
+	import { tunnel } from '@bridge-stack/svelte-tunnel';
+
+	const Toast = tunnel({ mode: 'multiple' });
+	let toasts = $state<{ id: number; text: string }[]>([]);
+</script>
+
+<header>
+	<Toast.Out />
+</header>
+
+<button onclick={() => (toasts = [...toasts, { id: Date.now(), text: 'Saved' }])}>
+	Save
+</button>
+
+{#each toasts as toast (toast.id)}
+	<Toast.In>
+		<span>{toast.text}</span>
+	</Toast.In>
+{/each}
+```
+
+### Context through `In`
+
+Context set above `In` remains available inside teleported content — even though it renders at `Out`.
+
+```svelte
+<script>
+	import { createContext } from 'svelte';
+	import { tunnel } from '@bridge-stack/svelte-tunnel';
+
+	const [getUser, setUser] = createContext<{ name: string }>();
+	const Portal = tunnel();
+
+	setUser({ name: 'Ada' });
+</script>
+
+<Portal.In>
+	<!-- getUser() works here, at the Out -->
+</Portal.In>
+
+<Portal.Out />
+```
+
+### Popover / overflow escape
+
+Teleport menus and overlays to a host outlet so they are not clipped by `overflow: hidden` or stuck under a low `z-index`.
+
+```svelte
+<script>
+	import { tunnel } from '@bridge-stack/svelte-tunnel';
+
+	const Popover = tunnel();
+	let open = $state(false);
+</script>
+
+<div style="overflow: hidden">
+	<button onclick={() => (open = !open)}>Menu</button>
+	{#if open}
+		<Popover.In>
+			<div role="menu">…</div>
+		</Popover.In>
+	{/if}
+</div>
+
+<!-- outside the clipped region -->
+<Popover.Out />
+```
+
+## API
+
+```ts
+import { tunnel } from '@bridge-stack/svelte-tunnel';
+
+const { In, Out } = tunnel({ mode?: 'single' | 'multiple' });
+```
+
+| Export | Role                                      |
+| ------ | ----------------------------------------- |
+| `In`   | Wraps content to teleport                 |
+| `Out`  | Marks where that content should appear    |
+
+Create a new tunnel for each independent portal pair. Multiple `Out`s on the same tunnel all receive the same teleported content according to the mode.
+
+## Develop
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm install
+pnpm dev
 ```
 
-Everything inside `src/lib` is part of your library, everything inside `src/routes` can be used as a showcase or preview app.
-
-## Building
-
-To build your library:
+Library source lives in `src/lib`. The site under `src/routes` is the docs/demo app (`/` landing, `/examples` demos).
 
 ```sh
-npm pack
+pnpm check   # typecheck
+pnpm test    # unit tests
+pnpm build   # site + package
+pnpm deploy  # build and publish the docs site
 ```
 
-To create a production version of your showcase app:
+## License
 
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
-
-## Publishing
-
-Go into the `package.json` and give your package the desired name through the `"name"` option. Also consider adding a `"license"` field and point it to a `LICENSE` file which you can create from a template (one popular option is the [MIT license](https://opensource.org/license/mit/)).
-
-To publish your library to [npm](https://www.npmjs.com):
-
-```sh
-npm publish
-```
+[MIT](./LICENSE)
