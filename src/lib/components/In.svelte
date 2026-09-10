@@ -1,16 +1,17 @@
 <script lang="ts">
-	import { tunnelStore } from '$lib/store.svelte';
 	import { mount, unmount, type Snippet } from 'svelte';
 	import ChildrenRenderer from './ChildrenRenderer.svelte';
 	import type { TunnelOptions } from '$lib/tunnel.js';
+	import { getTunnelStore } from '$lib/store.svelte.js';
 
 	interface Props {
-		id: symbol;
+		id: symbol | string;
 		children?: Snippet;
 		options: TunnelOptions;
 	}
 	const { id, children, options }: Props = $props();
 	const componentId = $props.id();
+	const tunnelStore = getTunnelStore();
 
 	$effect(() => {
 		if (options.mode === 'single') return;

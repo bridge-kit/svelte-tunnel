@@ -1,15 +1,17 @@
 <script lang="ts">
-	import { tunnelStore } from '$lib/store.svelte.js';
+	import { getTunnelStore } from '$lib/store.svelte.js';
 	import { onMount } from 'svelte';
 
 	interface Props {
-		id: symbol;
+		id: symbol | string;
 	}
 	const { id }: Props = $props();
+	const tunnelStore = getTunnelStore();
 	let anchor = $state<HTMLDivElement>();
 
 	onMount(() => {
 		if (anchor === undefined) return;
+
 		tunnelStore[id] = {
 			nodes: [anchor, ...(tunnelStore[id]?.nodes ?? [])],
 			inputIds: tunnelStore[id]?.inputIds ?? []
