@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getContext, mount, unmount, type Snippet } from 'svelte';
 	import ChildrenRenderer from './ChildrenRenderer.svelte';
-	import type { TunnelOptions } from '$lib/tunnel.js';
+	import type { TunnelOptions } from '$lib/tunnel.svelte.js';
 	import {
 		TUNNEL_CONTEXT_NAME,
 		tunnelStore as defaultTunnelStore,

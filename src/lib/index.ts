@@ -1,1 +1,1 @@
-export * from './tunnel.js';
+export * from './tunnel.svelte.ts';

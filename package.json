@@ -1,6 +1,6 @@
 {
 	"name": "@bridge-stack/svelte-tunnel",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "Portal content across your Svelte component tree with paired In/Out tunnels.",
 	"keywords": [
 		"svelte",

@@ -1,3 +1,3 @@
-import { tunnel } from "$lib/tunnel.js";
+import { tunnel } from '$lib/tunnel.svelte.ts';
 
-export const ui = tunnel()
+export const ui = tunnel();
