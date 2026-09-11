@@ -5,7 +5,6 @@
 	import './layout.css';
 
 	const { children } = $props();
-
 	const links = [
 		{ href: resolve('/'), label: 'Home', routeId: '/' },
 		{ href: resolve('/examples/'), label: 'Examples', routeId: '/examples' }
@@ -44,10 +43,7 @@
 				{#each links as link (link.href)}
 					<a
 						href={link.href}
-						class={[
-							'btn btn-sm',
-							isActive(link.routeId) ? 'btn-primary' : 'btn-quiet'
-						]}
+						class={['btn btn-sm', isActive(link.routeId) ? 'btn-primary' : 'btn-quiet']}
 					>
 						{link.label}
 					</a>

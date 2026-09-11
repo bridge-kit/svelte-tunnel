@@ -1,8 +1,12 @@
 <script lang="ts">
-	import { mount, unmount, type Snippet } from 'svelte';
+	import { getContext, mount, unmount, type Snippet } from 'svelte';
 	import ChildrenRenderer from './ChildrenRenderer.svelte';
 	import type { TunnelOptions } from '$lib/tunnel.js';
-	import { getTunnelStore } from '$lib/store.svelte.js';
+	import {
+		TUNNEL_CONTEXT_NAME,
+		tunnelStore as defaultTunnelStore,
+		type TunnelState
+	} from '$lib/store.svelte.js';
 
 	interface Props {
 		id: symbol | string;
@@ -11,10 +15,12 @@
 	}
 	const { id, children, options }: Props = $props();
 	const componentId = $props.id();
-	const tunnelStore = getTunnelStore();
+	const tunnelStoreContext =
+		getContext<Partial<Record<symbol | string, TunnelState>>>(TUNNEL_CONTEXT_NAME);
 
 	$effect(() => {
 		if (options.mode === 'single') return;
+		const tunnelStore = tunnelStoreContext ?? defaultTunnelStore;
 		const ctx = tunnelStore[id];
 		if (ctx === undefined) return;
 
@@ -29,6 +35,7 @@
 	});
 	$effect(() => {
 		if (options.mode === 'multiple') return;
+		const tunnelStore = tunnelStoreContext ?? defaultTunnelStore;
 		const ctx = tunnelStore[id];
 		if (ctx === undefined) return;
 		if (!ctx.inputIds.includes(componentId)) ctx.inputIds.push(componentId);
@@ -36,6 +43,8 @@
 	$effect(() => {
 		return () => {
 			if (options.mode === 'multiple') return;
+			const tunnelStore = tunnelStoreContext ?? defaultTunnelStore;
+
 			const ctx = tunnelStore[id];
 			if (ctx === undefined) return;
 			ctx.inputIds = ctx.inputIds.filter((item) => item !== componentId);
@@ -43,6 +52,8 @@
 	});
 	$effect(() => {
 		if (options.mode === 'multiple') return;
+		const tunnelStore = tunnelStoreContext ?? defaultTunnelStore;
+
 		const ctx = tunnelStore[id];
 		if (ctx === undefined) return;
 		const isLast = ctx.inputIds[ctx.inputIds.length - 1] === componentId;
